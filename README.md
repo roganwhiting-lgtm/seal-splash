@@ -1,1 +1,1 @@
-# seal-splash
+index.html
