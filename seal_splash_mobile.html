@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Seal Splash</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#062b45;font-family:Arial,sans-serif;touch-action:none}
+#game{position:relative;width:100%;height:100%;overflow:hidden;background:linear-gradient(#65d2f4 0%,#1493c5 42%,#06466d 100%)}
+#game:after{content:"";position:absolute;left:0;right:0;bottom:0;height:28%;background:radial-gradient(ellipse at center,rgba(2,28,53,.1),rgba(2,28,53,.3));pointer-events:none}
+#hud{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:20;gap:8px}
+.box{background:rgba(0,38,60,.68);color:#fff;padding:9px 13px;border-radius:14px;font-weight:800;font-size:16px}
+#seal{position:absolute;width:90px;height:70px;z-index:10;transform-origin:center;transition:filter .1s}
+.body{position:absolute;width:70px;height:46px;left:10px;top:14px;background:#aeb8bc;border-radius:52% 48% 45% 55%;box-shadow:inset -8px -7px 0 #8c989d,0 7px 7px rgba(0,0,0,.18)}
+.head{position:absolute;width:46px;height:42px;left:2px;top:9px;background:#bac3c6;border-radius:50%;z-index:3;box-shadow:inset -5px -5px 0 #98a4a8}
+.eye{position:absolute;width:7px;height:9px;background:#17242b;border-radius:50%;top:21px;z-index:5}
+.eye.l{left:13px}.eye.r{left:30px}
+.muzzle{position:absolute;width:27px;height:18px;left:11px;top:29px;background:#d1d5d5;border-radius:50%;z-index:4}
+.nose{position:absolute;width:9px;height:6px;left:20px;top:29px;background:#202a2d;border-radius:60% 60% 50% 50%;z-index:6}
+.whisker{position:absolute;height:1px;width:19px;background:#56636a;z-index:6;top:36px;transform-origin:left}
+.w1{left:10px;transform:rotate(12deg)}.w2{left:10px;top:40px;transform:rotate(-8deg)}
+.w3{left:28px;top:36px;transform:rotate(168deg)}.w4{left:28px;top:40px;transform:rotate(192deg)}
+.flipper{position:absolute;width:34px;height:15px;background:#8c989d;border-radius:70% 30% 60% 40%;z-index:1;top:46px;transform-origin:90% 50%}
+.flipper.back{right:0;transform:rotate(20deg)}.flipper.front{left:34px;top:50px;transform:rotate(-20deg)}
+.tail{position:absolute;right:-3px;top:27px;width:25px;height:28px;background:#909ca1;clip-path:polygon(0 50%,100% 0,82% 50%,100% 100%);z-index:0}
+@keyframes swim{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+@keyframes flap{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-18deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+#seal .body{animation:swim .75s ease-in-out infinite}
+#seal .head{animation:swim .75s ease-in-out infinite reverse}
+#seal .eye{animation:blink 4s infinite}
+#seal .flipper.front{animation:flap .6s ease-in-out infinite}
+#seal .flipper.back{animation:flap .6s ease-in-out infinite reverse}
+
+.item{position:absolute;z-index:7;user-select:none}
+.fish{font-size:39px;filter:drop-shadow(0 4px 2px rgba(0,0,0,.2));animation:fishbob 1s ease-in-out infinite}
+@keyframes fishbob{50%{transform:translateY(-7px) rotate(-5deg)}}
+.boat{font-size:45px;filter:drop-shadow(0 5px 3px rgba(0,0,0,.2))}
+.bubble{position:absolute;border:2px solid rgba(255,255,255,.4);border-radius:50%;z-index:2;animation:rise 7s linear forwards}
+@keyframes rise{from{transform:translateY(0);opacity:.8}to{transform:translateY(-110vh);opacity:0}}
+
+#controls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:30;display:grid;grid-template-columns:62px 62px 62px;grid-template-rows:58px 58px;gap:7px}
+.ctrl{border:1px solid rgba(255,255,255,.35);background:rgba(0,37,58,.55);color:#fff;border-radius:17px;font-size:25px;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.ctrl:active{background:rgba(255,255,255,.35);transform:scale(.95)}
+#up{grid-column:2}#left{grid-column:1;grid-row:2}#down{grid-column:2;grid-row:2}#right{grid-column:3;grid-row:2}
+
+#screen{position:absolute;inset:0;background:rgba(2,31,48,.48);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
+#panel{width:min(440px,92vw);background:rgba(2,31,48,.94);color:#fff;border-radius:25px;padding:28px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.35)}
+#panel h1{font-size:43px;margin:0 0 8px}
+#panel p{color:#d5f4fc;line-height:1.5}
+button#start{border:0;background:#ffd45a;color:#17384a;border-radius:14px;padding:14px 25px;font-size:18px;font-weight:900}
+.hidden{display:none!important}
+@media(min-width:700px){#controls{left:30px;transform:none}.ctrl{opacity:.75}}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="hud">
+    <div class="box">🐟 <span id="score">0</span></div>
+    <div class="box">❤️ <span id="health">3</span></div>
+  </div>
+
+  <div id="seal" aria-label="animated seal">
+    <div class="tail"></div>
+    <div class="flipper back"></div>
+    <div class="body"></div>
+    <div class="flipper front"></div>
+    <div class="head"></div>
+    <div class="eye l"></div><div class="eye r"></div>
+    <div class="muzzle"></div><div class="nose"></div>
+    <div class="whisker w1"></div><div class="whisker w2"></div>
+    <div class="whisker w3"></div><div class="whisker w4"></div>
+  </div>
+
+  <div id="controls">
+    <button class="ctrl" id="up">▲</button>
+    <button class="ctrl" id="left">◀</button>
+    <button class="ctrl" id="down">▼</button>
+    <button class="ctrl" id="right">▶</button>
+  </div>
+
+
+</div>
+
+<script>
+const game=document.getElementById("game"), seal=document.getElementById("seal");
+const scoreEl=document.getElementById("score"), healthEl=document.getElementById("health");
+const screen=document.getElementById("screen"), panel=document.getElementById("panel");
+let x=50,y=48,score=0,health=3,running=false,last=0;
+const keys={}; let fishes=[],boats=[];
+
+function pos(el,x,y){el.style.left=x+"vw";el.style.top=y+"vh"}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+function makeFish(){
+ const el=document.createElement("div"); el.className="item fish"; el.textContent="🐟";
+ const o={el,x:5+Math.random()*88,y:10+Math.random()*72}; fishes.push(o);pos(el,o.x,o.y);game.appendChild(el);
+}
+function makeBoat(){
+ const el=document.createElement("div"); el.className="item boat"; el.textContent="🚤";
+ const o={el,x:5+Math.random()*88,y:10+Math.random()*72,v:.035+Math.random()*.045*(Math.random()<.5?-1:1)};
+ boats.push(o);pos(el,o.x,o.y);game.appendChild(el);
+}
+function bubble(){
+ const b=document.createElement("div");b.className="bubble";let s=6+Math.random()*18;
+ b.style.width=b.style.height=s+"px";b.style.left=(5+Math.random()*90)+"vw";b.style.top=(90+Math.random()*15)+"vh";
+ game.appendChild(b);setTimeout(()=>b.remove(),7500);
+}
+setInterval(bubble,450);
+
+function reset(){
+ fishes.forEach(o=>o.el.remove());boats.forEach(o=>o.el.remove());fishes=[];boats=[];
+ score=0;health=3;x=50;y=48;scoreEl.textContent=0;healthEl.textContent=3;
+ for(let i=0;i<8;i++)makeFish();for(let i=0;i<3;i++)makeBoat();pos(seal,x,y);
+}
+function hurt(){
+ health--;healthEl.textContent=health;
+ seal.style.filter="brightness(1.7)";
+ setTimeout(()=>seal.style.filter="",150);
+ if(health<=0)gameOver();
+}
+function gameOver(){
+ running=false;
+ panel.innerHTML="<h1>Game Over 🦭</h1><p>Your seal collected <b>"+score+"</b> fish!</p><button id='restart'>PLAY AGAIN</button>";
+ screen.classList.remove("hidden");
+ document.getElementById("restart").onclick=()=>{screen.classList.add("hidden");reset();running=true;last=performance.now();requestAnimationFrame(loop)};
+}
+function loop(t){
+ if(!running)return;const dt=Math.min(40,t-last);last=t;
+ let dx=(keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0),dy=(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
+ let n=Math.hypot(dx,dy)||1;x+=dx/n*.42*dt/16;y+=dy/n*.42*dt/16;
+ x=Math.max(1,Math.min(89,x));y=Math.max(8,Math.min(82,y));pos(seal,x,y);
+ for(let i=fishes.length-1;i>=0;i--){let o=fishes[i];if(dist({x,y},o)<7){o.el.remove();fishes.splice(i,1);score++;scoreEl.textContent=score;makeFish()}}
+ for(const o of boats){o.x+=o.v*dt;if(o.x>92||o.x<1)o.v*=-1;pos(o.el,o.x,o.y);if(dist({x,y},o)<7){o.x=5+Math.random()*88;o.y=10+Math.random()*72;hurt()}}
+ requestAnimationFrame(loop);
+}
+window.addEventListener("keydown",e=>{if(e.key.startsWith("Arrow")){keys[e.key]=true;e.preventDefault()}});
+window.addEventListener("keyup",e=>{keys[e.key]=false});
+
+function hold(id,key){
+ const b=document.getElementById(id);
+ b.addEventListener("pointerdown",e=>{e.preventDefault();keys[key]=true;b.setPointerCapture?.(e.pointerId)});
+ ["pointerup","pointercancel","pointerleave"].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();keys[key]=false}));
+}
+hold("up","ArrowUp");hold("down","ArrowDown");hold("left","ArrowLeft");hold("right","ArrowRight");
+
+reset();
+running=true;
+last=performance.now();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
